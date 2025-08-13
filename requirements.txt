@@ -4,3 +4,4 @@ python-dotenv==1.0.1
 flask==2.3.3 
 werkzeug==2.3.7
 apscheduler==3.10.1
+gunicorn
