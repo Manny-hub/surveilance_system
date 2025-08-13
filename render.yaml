@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: naija-crime-blog
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn src.blog_app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        value: data/news.db
+      - key: USER_AGENT
+        value: YourBotName/1.0
+    plan: free
+  - type: cron
+    name: naija-crime-ingest
+    env: python
+    buildCommand: pip install -r requirements.txt
+    schedule: "*/15 * * * *" # every 15 minutes
+    startCommand: python -m src.ingest_rss

@@ -5,12 +5,19 @@ from datetime import datetime, timezone
 from .enrich import detect_tags, extract_location
 
 import feedparser
+from bs4 import BeautifulSoup  # ✅ Added for HTML cleaning
 
 from .config import DATABASE_URL, USER_AGENT
 from .db import get_db, init_db
 from .feeds import FEEDS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
+
+def clean_html(raw_html: str) -> str:
+    """Remove HTML tags and return plain text."""
+    soup = BeautifulSoup(raw_html, "html.parser")
+    return soup.get_text().strip()
 
 
 def to_iso8601(entry) -> str | None:
@@ -44,7 +51,11 @@ def upsert(conn, entry, source_title: str) -> int:
 
     uid = hashlib.sha256(link.encode("utf-8")).hexdigest()
     title = (getattr(entry, "title", "") or "")[:500]
-    summary = getattr(entry, "summary", "") or ""
+
+    # ✅ Clean HTML from summary
+    summary_raw = getattr(entry, "summary", "") or ""
+    summary = clean_html(summary_raw)
+
     author = getattr(entry, "author", "") or ""
     published_at = to_iso8601(entry)
     now = int(time.time())
@@ -55,7 +66,6 @@ def upsert(conn, entry, source_title: str) -> int:
 
     if location and location not in tag_str:
         tag_str = f"{tag_str},{location}" if tag_str else location
-
 
     try:
         conn.execute(
@@ -70,7 +80,7 @@ def upsert(conn, entry, source_title: str) -> int:
             tags=excluded.tags,
             updated_at=excluded.updated_at
         """,
-        (uid, source_title, title, link, author, published_at, summary, "", tag_str, now, now),   
+            (uid, source_title, title, link, author, published_at, summary, "", tag_str, now, now),
         )
         return 1
     except Exception as e:
@@ -95,8 +105,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-  
-
-
-
