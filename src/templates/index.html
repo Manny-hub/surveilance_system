@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Latest Reports</h2>
+
+<form method="get" class="row g-2 mb-4">
+    <div class="col-auto">
+        <input type="text" class="form-control" name="search" placeholder="Search..."
+               value="{{ search or '' }}">
+    </div>
+    <div class="col-auto">
+        <select name="tag" class="form-select">
+            <option value="">All Tags</option>
+            <option value="crime" {% if tag == 'crime' %}selected{% endif %}>Crime</option>
+            <option value="ai-misuse" {% if tag == 'ai-misuse' %}selected{% endif %}>AI Misuse</option>
+        </select>
+    </div>
+    <div class="col-auto">
+        <input type="text" class="form-control" name="location" placeholder="Location"
+               value="{{ location or '' }}">
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary">Filter</button>
+    </div>
+</form>
+
+{% for a in articles %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ a['title'] }}</h5>
+        <p class="card-text">{{ a['summary'] or '' }}</p>
+        <p><small class="text-muted">
+            {{ a['published_at'] or '' }} | Tags: {{ a['tags'] or '' }}
+        </small></p>
+        <a href="{{ a['url'] }}" target="_blank" class="btn btn-sm btn-outline-secondary">Read more</a>
+    </div>
+</div>
+{% else %}
+<p>No articles found.</p>
+{% endfor %}
+{% endblock %}
